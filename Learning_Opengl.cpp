@@ -16,14 +16,15 @@ const char* vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
 "void main()\n"
 "{\n"
-"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"   gl_Position = vec4(aPos, 1.0);\n"
 "}\0";
-//片元着色器的源码
+
 const char* fragmentShaderSource = "#version 330 core\n"
 "out vec4 FragColor;\n"
+"uniform vec4 ourColor;\n"
 "void main()\n"
 "{\n"
-"   FragColor = vec4(0.0f, 0.5f, 0.2f, 1.0f);\n"
+"   FragColor = ourColor;\n"
 "}\n\0";
 
 int main()
@@ -131,11 +132,11 @@ int main()
     glEnableVertexAttribArray(0);
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0);
+    glBindVertexArray(VAO);
 
 
     // uncomment this call to draw in wireframe polygons.
@@ -163,6 +164,12 @@ int main()
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         // 关闭线框模式
         //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        // 
+        // update shader uniform
+        double  timeValue = glfwGetTime();
+        float greenValue = static_cast<float>(sin(timeValue) / 2.0 + 0.5);
+        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         
         // glBindVertexArray(0); // no need to unbind it every time 
