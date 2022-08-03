@@ -69,10 +69,11 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
-
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // build and compile shaders
     // -------------------------
-    Shader shader("shaders/3.1.blending.vs", "shaders/3.1.blending.fs");
+    Shader shader("shaders/3.2.blending.vs", "shaders/3.2.blending.fs");
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float cubeVertices[] = {
@@ -180,11 +181,11 @@ int main()
     // -------------
     unsigned int cubeTexture = loadTexture("assets/marble.jpg");
     unsigned int floorTexture = loadTexture("assets/metal.png");
-    unsigned int transparentTexture = loadTexture("assets/grass.png");
+    unsigned int transparentTexture = loadTexture("assets/blending_transparent_window.png");
     
-    // transparent vegetation locations
+    // transparent window locations
     // --------------------------------
-    vector<glm::vec3> vegetation
+    vector<glm::vec3> windows
     {
         glm::vec3(-1.5f, 0.0f, -0.48f),
         glm::vec3(1.5f, 0.0f, 0.51f),
@@ -212,6 +213,21 @@ int main()
         // -----
         processInput(window);
 
+        /*
+        绘制一个有不透明和透明物体的场景的时候，大体的原则如下：
+            先绘制所有不透明的物体。
+            对所有透明的物体排序。
+            按顺序绘制所有透明的物体。
+        */
+        // sort the transparent windows before rendering
+        // ---------------------------------------------
+        std::map<float, glm::vec3> sorted;
+        for (unsigned int i = 0; i < windows.size(); i++)
+        {
+            float distance = glm::length(camera.Position - windows[i]);
+            sorted[distance] = windows[i];
+        }
+
         // render
         // ------
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -221,7 +237,6 @@ int main()
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        shader.use();
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
 
@@ -244,13 +259,13 @@ int main()
         shader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        // vegetation
+        // windows (from furthest to nearest)
         glBindVertexArray(transparentVAO);
         glBindTexture(GL_TEXTURE_2D, transparentTexture);
-        for (unsigned int i = 0; i < vegetation.size(); i++)
+        for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it)
         {
             model = glm::mat4(1.0f);
-            model = glm::translate(model, vegetation[i]);
+            model = glm::translate(model, it->second);
             shader.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 6);
         }
