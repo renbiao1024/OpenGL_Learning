@@ -68,11 +68,16 @@ int main()
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
 
-    // build and compile shaders
     // -------------------------
-    Shader shader("shaders/9.2.geometry_shader.vs", "shaders/9.2.geometry_shader.fs", "shaders/9.2.geometry_shader.gs");
-    Model nanosuit("models/nanosuit.obj");
+        // build and compile shaders
+    // -------------------------
+    Shader shader("shaders/9.3.default.vs", "shaders/9.3.default.fs");
+    Shader normalShader("shaders/9.3.normal_visualization.vs", "shaders/9.3.normal_visualization.fs", "shaders/9.3.normal_visualization.gs");
 
+    // load models
+// -----------
+    stbi_set_flip_vertically_on_load(true);
+    Model backpack("models/backpack/backpack.obj");
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -101,11 +106,15 @@ int main()
         shader.setMat4("view", view);
         shader.setMat4("model", model);
 
-        // add time component to geometry shader in the form of a uniform
-        shader.setFloat("time", static_cast<float>(glfwGetTime()));
-
         // draw model
-        nanosuit.Draw(shader);
+        backpack.Draw(shader);
+        // then draw model with normal visualizing geometry shader
+        normalShader.use();
+        normalShader.setMat4("projection", projection);
+        normalShader.setMat4("view", view);
+        normalShader.setMat4("model", model);
+
+        backpack.Draw(normalShader);
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
