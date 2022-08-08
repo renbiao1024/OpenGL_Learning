@@ -1,21 +1,15 @@
 #pragma once
 #ifndef SHADER_H
 #define SHADER_H
-#include "glm/glm.hpp"
-#include <glad/glad.h>
-
 #include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-
+#include "glm/glm.hpp"
 class Shader
 {
 public:
     unsigned int ID;
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
-    Shader(const char* vertexPath, const char* fragmentPath);
+    Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr);
     // activate the shader
     // ------------------------------------------------------------------------
     void use();
